@@ -1,0 +1,194 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unknown System</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #080808;
+  color: white;
+  font-family: monospace;
+  min-height: 100vh;
+  overflow: hidden;
+}
+.desktop {
+  min-height: 100vh;
+  padding: 35px;
+  display: grid;
+  grid-template-columns: repeat(2, 120px);
+  grid-auto-rows: 120px;
+  gap: 25px;
+}
+.folder {
+  cursor: pointer;
+  text-align: center;
+  padding: 15px;
+  border: 1px solid #333;
+  background: #151515;
+}
+.folder:hover { background: #292929; }
+.folder span { display: block; font-size: 38px; }
+#entity {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: black;
+  padding: 30px;
+  text-align: center;
+}
+#answer {
+  margin: 25vh auto 35px;
+  max-width: 700px;
+  min-height: 50px;
+  white-space: pre-wrap;
+  font-size: 20px;
+}
+#question {
+  background: black;
+  border: 1px solid white;
+  color: white;
+  padding: 12px;
+  width: min(80%, 450px);
+}
+button {
+  background: #111;
+  border: 1px solid white;
+  color: white;
+  padding: 12px;
+  cursor: pointer;
+}
+#footer {
+  position: absolute;
+  bottom: 15px;
+  left: 0;
+  right: 0;
+  color: #555;
+  font-size: 11px;
+}
+#glitch {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, #000 0px, #000 3px, #333 4px, #000 6px
+  );
+  z-index: 5;
+  animation: flicker .08s infinite;
+}
+@keyframes flicker {
+  50% { opacity: .2; }
+}
+</style>
+</head>
+<body>
+
+<div class="desktop" id="desktop">
+  <div class="folder" onclick="openFolder('Important stuff')">
+    <span>📁</span>Important stuff
+  </div>
+  <div class="folder" onclick="openFolder('Data base')">
+    <span>📁</span>Data base
+  </div>
+  <div class="folder" onclick="openFolder('DO NOT OPEN')">
+    <span>📁</span>DO NOT OPEN
+  </div>
+  <div class="folder" onclick="openFolder('???')">
+    <span>❔</span>???
+  </div>
+</div>
+
+<div id="glitch"></div>
+
+<div id="entity">
+  <div id="answer">...</div>
+  <form id="entityForm">
+    <input id="question" type="password"
+      placeholder="Ask your question..." maxlength="500"
+      autocomplete="off" required>
+    <button type="submit">SEND</button>
+  </form>
+  <div id="footer">FICTIONAL ENTITY // VISUAL SIMULATION</div>
+</div>
+
+<script>
+const ENTITY_ENDPOINT =
+  "https://mysterious-entity.theben1415.workers.dev";
+
+let busy = false;
+
+function openFolder(name) {
+  if (name === "???") {
+    document.getElementById("glitch").style.display = "block";
+    setTimeout(() => {
+      document.getElementById("glitch").style.display = "none";
+      document.getElementById("desktop").style.display = "none";
+      document.getElementById("entity").style.display = "block";
+    }, 3000);
+    return;
+  }
+
+  if (name === "Important stuff") {
+    alert("Windows notification: Something is not right...");
+  } else if (name === "Data base") {
+    alert("YOU SHOULD NOT SEE THIS\n\nACCESS TERMINATED\n\nCONNECTION LOST");
+  } else if (name === "DO NOT OPEN") {
+    alert("WHY DID YOU OPEN IT?");
+    setTimeout(() => alert("YOU SHOULD NOT HAVE OPENED IT"), 1500);
+  }
+}
+
+async function typeAnswer(message) {
+  const output = document.getElementById("answer");
+  output.textContent = "";
+  for (const character of message) {
+    output.textContent += character;
+    await new Promise(resolve => setTimeout(resolve, 35));
+  }
+}
+
+document.getElementById("entityForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (busy) return;
+
+  const input = document.getElementById("question");
+  const question = input.value.trim();
+  if (!question) return;
+
+  input.value = "";
+  busy = true;
+  document.querySelector("#entityForm button").disabled = true;
+  document.getElementById("answer").textContent = "...";
+
+  try {
+    const response = await fetch(ENTITY_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question })
+    });
+
+    if (!response.ok) throw new Error("Connection failed");
+
+    const data = await response.json();
+    await typeAnswer(data.answer || "THE ENTITY IS SILENT.");
+  } catch (error) {
+    await typeAnswer("CONNECTION LOST. THE ENTITY CANNOT ANSWER.");
+    console.error(error);
+  } finally {
+    busy = false;
+    document.querySelector("#entityForm button").disabled = false;
+    input.focus();
+  }
+});
+
+function fakeVirusCleanup() {
+  document.getElementById("entity").style.display = "none";
+  document.getElementById("glitch").style.display = "none";
+  document.getElementById("desktop").style.display = "grid";
+}
+</script>
+</body>
+</html>
